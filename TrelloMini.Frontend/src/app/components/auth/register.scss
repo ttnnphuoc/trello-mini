@@ -1,0 +1,26 @@
+// Import login styles as base
+@import './login.scss';
+
+// Additional styles specific to register
+.name-row {
+  display: flex;
+  gap: 1rem;
+  
+  .name-field {
+    flex: 1;
+  }
+}
+
+// Responsive adjustments for name fields
+@media (max-width: 480px) {
+  .name-row {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+}
+
+// Adjust card height for additional fields
+.auth-card {
+  max-height: 90vh;
+  overflow-y: auto;
+}

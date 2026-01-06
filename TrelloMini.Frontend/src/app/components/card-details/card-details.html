@@ -1,0 +1,129 @@
+<div class="card-details-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title class="text-xl font-semibold flex items-center gap-2">
+      <mat-icon>credit_card</mat-icon>
+      Card Details
+    </h2>
+    <button mat-icon-button (click)="onCancel()" [disabled]="isLoading">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="error-message mb-4">
+      <mat-icon>error_outline</mat-icon>
+      {{ errorMessage }}
+    </div>
+
+    <form [formGroup]="cardForm" class="card-form">
+      <!-- Title Field -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Card Title</mat-label>
+        <input 
+          matInput 
+          formControlName="title"
+          placeholder="Enter card title"
+          maxlength="200">
+        <mat-hint align="end">{{ cardForm.get('title')?.value?.length || 0 }}/200</mat-hint>
+        <mat-error *ngIf="getFieldError('title')">
+          {{ getFieldError('title') }}
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Description Field -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Description</mat-label>
+        <textarea 
+          matInput 
+          formControlName="description"
+          placeholder="Enter card description"
+          rows="4"
+          maxlength="2000">
+        </textarea>
+        <mat-hint align="end">{{ cardForm.get('description')?.value?.length || 0 }}/2000</mat-hint>
+        <mat-error *ngIf="getFieldError('description')">
+          {{ getFieldError('description') }}
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Due Date and Priority Row -->
+      <div class="form-row">
+        <!-- Due Date Field -->
+        <mat-form-field appearance="outline" class="flex-1">
+          <mat-label>Due Date</mat-label>
+          <input 
+            matInput 
+            [matDatepicker]="picker"
+            formControlName="dueDate"
+            placeholder="Select due date">
+          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+
+        <!-- Priority Field -->
+        <mat-form-field appearance="outline" class="flex-1">
+          <mat-label>Priority</mat-label>
+          <mat-select formControlName="priority">
+            <mat-option *ngFor="let option of priorityOptions" [value]="option.value">
+              <div class="priority-option">
+                <div class="priority-indicator" [class]="'priority-' + option.color"></div>
+                {{ option.label }}
+              </div>
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <!-- Current Priority Display -->
+      <div class="current-priority" *ngIf="cardForm.get('priority')?.value !== 0">
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-600">Current Priority:</span>
+          <div class="priority-chip" [class]="'priority-' + getPriorityColor(cardForm.get('priority')?.value)">
+            {{ getPriorityLabel(cardForm.get('priority')?.value) }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Due Date Display -->
+      <div class="due-date-info" *ngIf="cardForm.get('dueDate')?.value">
+        <div class="flex items-center gap-2 text-sm">
+          <mat-icon class="text-orange-500">schedule</mat-icon>
+          <span class="text-gray-600">Due:</span>
+          <span class="font-medium">{{ cardForm.get('dueDate')?.value | date:'medium' }}</span>
+        </div>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="dialog-actions">
+    <div class="actions-left">
+      <button 
+        mat-button 
+        color="warn" 
+        (click)="onDelete()"
+        [disabled]="isLoading">
+        <mat-icon>delete</mat-icon>
+        Delete Card
+      </button>
+    </div>
+    
+    <div class="actions-right">
+      <button 
+        mat-button 
+        (click)="onCancel()"
+        [disabled]="isLoading">
+        Cancel
+      </button>
+      <button 
+        mat-raised-button 
+        color="primary" 
+        (click)="onSave()"
+        [disabled]="!cardForm.valid || isLoading">
+        <mat-spinner *ngIf="isLoading" diameter="16" class="mr-2"></mat-spinner>
+        <span *ngIf="!isLoading">Save Changes</span>
+        <span *ngIf="isLoading">Saving...</span>
+      </button>
+    </div>
+  </mat-dialog-actions>
+</div>

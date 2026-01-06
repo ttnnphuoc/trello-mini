@@ -6,8 +6,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatMenuModule } from '@angular/material/menu';
 import { BoardService } from '../../services/board';
+import { AuthService } from '../../services/auth';
 import { Board } from '../../models/board';
+import { User } from '../../models/auth';
 
 @Component({
   selector: 'app-board-list',
@@ -19,7 +22,8 @@ import { Board } from '../../models/board';
     MatButtonModule,
     MatIconModule,
     MatDialogModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatMenuModule
   ],
   templateUrl: './board-list.html',
   styleUrl: './board-list.scss',
@@ -27,10 +31,17 @@ import { Board } from '../../models/board';
 export class BoardListComponent implements OnInit {
   boards: Board[] = [];
   loading = false;
+  currentUser: User | null = null;
 
-  constructor(private boardService: BoardService) { }
+  constructor(
+    private boardService: BoardService,
+    private authService: AuthService
+  ) { }
 
   ngOnInit(): void {
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+    });
     this.loadBoards();
   }
 
@@ -79,5 +90,9 @@ export class BoardListComponent implements OnInit {
 
   getTotalCards(board: Board): number {
     return board.lists?.reduce((total, list) => total + (list.cards?.length || 0), 0) || 0;
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 }

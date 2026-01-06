@@ -9,6 +9,7 @@ namespace TrelloMini.Api.Data
         {
         }
 
+        public DbSet<User> Users { get; set; }
         public DbSet<Board> Boards { get; set; }
         public DbSet<List> Lists { get; set; }
         public DbSet<Card> Cards { get; set; }
@@ -16,6 +17,22 @@ namespace TrelloMini.Api.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Username).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.Email).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.PasswordHash).IsRequired();
+                entity.Property(e => e.FirstName).HasMaxLength(100);
+                entity.Property(e => e.LastName).HasMaxLength(100);
+                entity.HasIndex(e => e.Username).IsUnique();
+                entity.HasIndex(e => e.Email).IsUnique();
+                entity.HasMany(e => e.Boards)
+                    .WithOne(e => e.User)
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
 
             modelBuilder.Entity<Board>(entity =>
             {

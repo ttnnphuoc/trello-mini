@@ -27,8 +27,8 @@ export class CardService {
     return this.http.post<Card>(this.apiUrl, card);
   }
 
-  updateCard(id: number, card: Card): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, card);
+  updateCard(id: number, card: Partial<Card>): Observable<Card> {
+    return this.http.put<Card>(`${this.apiUrl}/${id}`, card);
   }
 
   moveCard(id: number, moveRequest: MoveCardRequest): Observable<any> {

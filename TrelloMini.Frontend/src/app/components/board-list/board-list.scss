@@ -1,0 +1,59 @@
+// Board Grid Responsive Design
+.boards-grid {
+  @apply grid gap-6;
+  
+  // Mobile first approach
+  grid-template-columns: 1fr;
+  
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  @media (min-width: 1280px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+// Board Card Hover Effects
+.board-card {
+  transition: all 0.2s ease-in-out;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+}
+
+// Header responsive improvements
+.page-header {
+  @apply flex flex-col gap-4;
+  
+  @media (min-width: 640px) {
+    @apply flex-row justify-between items-center;
+  }
+}
+
+// Empty state improvements
+.empty-state {
+  @apply text-center py-12;
+  
+  .empty-icon {
+    @apply text-6xl text-gray-400 mb-4;
+    
+    @media (max-width: 640px) {
+      @apply text-4xl mb-3;
+    }
+  }
+  
+  .empty-title {
+    @apply text-xl font-semibold text-gray-600 mb-2;
+    
+    @media (max-width: 640px) {
+      @apply text-lg;
+    }
+  }
+}
