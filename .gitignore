@@ -1,0 +1,43 @@
+# Backend
+TrelloMini.Backend/TrelloMini.Api/bin/
+TrelloMini.Backend/TrelloMini.Api/obj/
+*.user
+*.suo
+*.cache
+*.docstates
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+.vs/
+.vscode/
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.opendb
+*.VC.db
+
+# Frontend
+TrelloMini.Frontend/node_modules/
+TrelloMini.Frontend/dist/
+TrelloMini.Frontend/.angular/
+TrelloMini.Frontend/coverage/
+TrelloMini.Frontend/.nyc_output/
+TrelloMini.Frontend/.sass-cache/
+TrelloMini.Frontend/connect.lock
+TrelloMini.Frontend/libpeerconnection.log
+TrelloMini.Frontend/npm-debug.log*
+TrelloMini.Frontend/yarn-error.log
+TrelloMini.Frontend/testem.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+*.swp
+*.swo
+*~
