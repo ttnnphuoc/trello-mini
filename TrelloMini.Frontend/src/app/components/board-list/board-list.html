@@ -1,1 +1,68 @@
-<p>board-list works!</p>
+<div class="container mx-auto p-6">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold text-gray-800">My Boards</h1>
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="createBoard()"
+      class="flex items-center gap-2">
+      <mat-icon>add</mat-icon>
+      Create Board
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="text-center py-12">
+    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    <p class="mt-2 text-gray-600">Loading boards...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && boards.length === 0" class="text-center py-12">
+    <mat-icon class="text-6xl text-gray-400 mb-4">dashboard</mat-icon>
+    <h2 class="text-xl font-semibold text-gray-600 mb-2">No boards yet</h2>
+    <p class="text-gray-500 mb-6">Create your first board to get started!</p>
+    <button mat-raised-button color="primary" (click)="createBoard()">
+      Create Your First Board
+    </button>
+  </div>
+
+  <!-- Boards Grid -->
+  <div *ngIf="!loading && boards.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <mat-card 
+      *ngFor="let board of boards" 
+      class="board-card cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-lg">
+      
+      <mat-card-header>
+        <mat-card-title class="text-lg font-semibold truncate">{{ board.title }}</mat-card-title>
+        <mat-card-subtitle *ngIf="board.description" class="text-sm text-gray-600 truncate">
+          {{ board.description }}
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="flex items-center justify-between text-sm text-gray-500">
+          <span>{{ board.lists?.length || 0 }} lists</span>
+          <span>{{ getTotalCards(board) }} cards</span>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions class="flex justify-between">
+        <button 
+          mat-button 
+          color="primary" 
+          [routerLink]="['/board', board.id]">
+          Open Board
+        </button>
+        <button 
+          mat-icon-button 
+          color="warn" 
+          (click)="deleteBoard(board.id)"
+          matTooltip="Delete Board">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

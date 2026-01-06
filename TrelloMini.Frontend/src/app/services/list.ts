@@ -7,7 +7,7 @@ import { List } from '../models/list';
   providedIn: 'root'
 })
 export class ListService {
-  private apiUrl = 'http://localhost:5063/api/lists';
+  private apiUrl = 'http://localhost:5056/api/lists';
 
   constructor(private http: HttpClient) { }
 

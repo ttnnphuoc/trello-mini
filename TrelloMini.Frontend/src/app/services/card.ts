@@ -7,7 +7,7 @@ import { Card, MoveCardRequest } from '../models/card';
   providedIn: 'root'
 })
 export class CardService {
-  private apiUrl = 'http://localhost:5063/api/cards';
+  private apiUrl = 'http://localhost:5056/api/cards';
 
   constructor(private http: HttpClient) { }
 

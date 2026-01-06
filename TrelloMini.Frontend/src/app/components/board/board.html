@@ -1,1 +1,137 @@
-<p>board works!</p>
+<div class="min-h-screen bg-gray-50 p-4">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex justify-center items-center h-64">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  </div>
+
+  <!-- Board Content -->
+  <div *ngIf="!loading && board">
+    <!-- Header -->
+    <div class="mb-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-800">{{ board.title }}</h1>
+          <p *ngIf="board.description" class="text-gray-600 mt-1">{{ board.description }}</p>
+        </div>
+        <button 
+          mat-raised-button 
+          [routerLink]="['/']"
+          class="flex items-center gap-2">
+          <mat-icon>arrow_back</mat-icon>
+          Back to Boards
+        </button>
+      </div>
+    </div>
+
+    <!-- Lists Container -->
+    <div class="flex gap-6 overflow-x-auto pb-4">
+      <!-- Existing Lists -->
+      <div 
+        *ngFor="let list of board.lists" 
+        class="flex-shrink-0 w-80 bg-white rounded-lg shadow-md">
+        
+        <!-- List Header -->
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+          <h3 class="font-semibold text-gray-800">{{ list.title }}</h3>
+          <button 
+            mat-icon-button 
+            color="warn" 
+            (click)="deleteList(list.id)"
+            class="text-gray-500 hover:text-red-500">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+
+        <!-- Cards -->
+        <div class="p-4 space-y-3 min-h-[200px]">
+          <mat-card 
+            *ngFor="let card of list.cards" 
+            class="p-3 cursor-pointer hover:shadow-md transition-shadow">
+            
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <h4 class="font-medium text-gray-800">{{ card.title }}</h4>
+                <p *ngIf="card.description" class="text-sm text-gray-600 mt-1">
+                  {{ card.description }}
+                </p>
+                <div *ngIf="card.dueDate" class="text-xs text-orange-600 mt-2">
+                  Due: {{ card.dueDate | date }}
+                </div>
+              </div>
+              <button 
+                mat-icon-button 
+                (click)="deleteCard(list.id, card.id)"
+                class="text-gray-400 hover:text-red-500 ml-2">
+                <mat-icon class="text-sm">close</mat-icon>
+              </button>
+            </div>
+          </mat-card>
+
+          <!-- Add New Card -->
+          <div class="mt-4">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Add a card...</mat-label>
+              <input 
+                matInput 
+                [(ngModel)]="newCardTitles[list.id]"
+                (keyup.enter)="createCard(list.id)"
+                placeholder="Enter card title">
+            </mat-form-field>
+            <button 
+              mat-raised-button 
+              color="primary" 
+              (click)="createCard(list.id)"
+              [disabled]="!newCardTitles[list.id]?.trim()"
+              class="mt-2 w-full">
+              <mat-icon>add</mat-icon>
+              Add Card
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add New List -->
+      <div class="flex-shrink-0 w-80 bg-gray-100 rounded-lg p-4 border-2 border-dashed border-gray-300">
+        <div class="text-center">
+          <mat-icon class="text-4xl text-gray-400 mb-3">add</mat-icon>
+          <h3 class="font-medium text-gray-700 mb-4">Add a list</h3>
+          
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>List title</mat-label>
+            <input 
+              matInput 
+              [(ngModel)]="newListTitle"
+              (keyup.enter)="createList()"
+              placeholder="Enter list title">
+          </mat-form-field>
+          
+          <button 
+            mat-raised-button 
+            color="primary" 
+            (click)="createList()"
+            [disabled]="!newListTitle.trim()"
+            class="mt-3 w-full">
+            Create List
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State for Lists -->
+    <div *ngIf="board.lists.length === 0" class="text-center py-16">
+      <mat-icon class="text-6xl text-gray-400 mb-4">view_column</mat-icon>
+      <h2 class="text-xl font-semibold text-gray-600 mb-2">No lists yet</h2>
+      <p class="text-gray-500 mb-6">Create your first list to start organizing tasks!</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!loading && !board" class="text-center py-16">
+    <mat-icon class="text-6xl text-red-400 mb-4">error_outline</mat-icon>
+    <h2 class="text-xl font-semibold text-gray-600 mb-2">Board not found</h2>
+    <p class="text-gray-500 mb-6">The board you're looking for doesn't exist or has been deleted.</p>
+    <button mat-raised-button color="primary" [routerLink]="['/']">
+      Back to Boards
+    </button>
+  </div>
+</div>
