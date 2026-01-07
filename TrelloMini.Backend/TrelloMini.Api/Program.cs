@@ -4,12 +4,16 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TrelloMini.Api.Data;
 using TrelloMini.Api.Hubs;
+using TrelloMini.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<TrelloDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Add custom services
+builder.Services.AddScoped<IActivityLogService, ActivityLogService>();
 
 // Add JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

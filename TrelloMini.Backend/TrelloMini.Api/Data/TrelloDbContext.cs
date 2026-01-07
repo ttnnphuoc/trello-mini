@@ -16,6 +16,10 @@ namespace TrelloMini.Api.Data
         public DbSet<BoardMember> BoardMembers { get; set; }
         public DbSet<BoardInvitation> BoardInvitations { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<ActivityLog> ActivityLogs { get; set; }
+        public DbSet<BoardTemplate> BoardTemplates { get; set; }
+        public DbSet<TemplateList> TemplateLists { get; set; }
+        public DbSet<TemplateCard> TemplateCards { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -138,6 +142,70 @@ namespace TrelloMini.Api.Data
                     .WithMany()
                     .HasForeignKey(e => e.ActorUserId)
                     .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<ActivityLog>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.ActivityType).IsRequired();
+                entity.Property(e => e.Description).IsRequired().HasMaxLength(500);
+                entity.Property(e => e.Data).HasMaxLength(5000);
+                entity.Property(e => e.IpAddress).HasMaxLength(45);
+                entity.Property(e => e.UserAgent).HasMaxLength(500);
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                entity.HasOne(e => e.Board)
+                    .WithMany()
+                    .HasForeignKey(e => e.BoardId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.List)
+                    .WithMany()
+                    .HasForeignKey(e => e.ListId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.Card)
+                    .WithMany()
+                    .HasForeignKey(e => e.CardId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(e => e.CreatedAt);
+                entity.HasIndex(e => e.BoardId);
+                entity.HasIndex(e => e.UserId);
+            });
+
+            modelBuilder.Entity<BoardTemplate>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.Category).IsRequired().HasMaxLength(50);
+                entity.HasOne(e => e.CreatedBy)
+                    .WithMany()
+                    .HasForeignKey(e => e.CreatedByUserId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                entity.HasMany(e => e.Lists)
+                    .WithOne(e => e.Template)
+                    .HasForeignKey(e => e.TemplateId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(e => e.Category);
+                entity.HasIndex(e => e.IsPublic);
+            });
+
+            modelBuilder.Entity<TemplateList>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Title).IsRequired().HasMaxLength(100);
+                entity.HasMany(e => e.Cards)
+                    .WithOne(e => e.TemplateList)
+                    .HasForeignKey(e => e.TemplateListId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<TemplateCard>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.Description).HasMaxLength(1000);
             });
         }
     }

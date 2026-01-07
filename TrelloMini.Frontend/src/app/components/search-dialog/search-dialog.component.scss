@@ -1,0 +1,243 @@
+.search-dialog {
+  width: 100%;
+  min-width: 600px;
+  max-width: 800px;
+
+  .search-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px 0;
+
+    h2 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 500;
+    }
+  }
+
+  mat-dialog-content {
+    padding: 16px 24px;
+    min-height: 400px;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  .search-input-container {
+    margin-bottom: 24px;
+
+    .search-field {
+      width: 100%;
+      font-size: 16px;
+    }
+
+    .search-type-chips {
+      display: flex;
+      gap: 8px;
+      margin: 16px 0;
+      flex-wrap: wrap;
+    }
+
+    .advanced-filters-toggle {
+      margin-top: 8px;
+
+      mat-icon {
+        margin-right: 8px;
+      }
+    }
+  }
+
+  .advanced-filters {
+    padding: 16px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    margin-bottom: 24px;
+
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+
+      mat-form-field {
+        width: 100%;
+      }
+    }
+
+    .filter-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+  }
+
+  .loading-container,
+  .error-container,
+  .empty-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 16px;
+    text-align: center;
+
+    mat-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    p {
+      color: #666;
+      margin: 0;
+    }
+  }
+
+  .search-results {
+    .results-count {
+      margin-bottom: 24px;
+      font-size: 14px;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .results-section {
+      margin-bottom: 32px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      h3 {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 18px;
+        font-weight: 500;
+        margin: 0 0 16px 0;
+        color: #333;
+
+        mat-icon {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+      }
+
+      .result-card {
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+          transform: translateY(-2px);
+        }
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        mat-card-header {
+          margin-bottom: 8px;
+        }
+
+        mat-card-title {
+          font-size: 16px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+
+          .priority-chip {
+            height: 20px;
+            font-size: 11px;
+            padding: 0 8px;
+
+            &.priority-low {
+              background-color: #4caf50;
+              color: white;
+            }
+
+            &.priority-medium {
+              background-color: #ff9800;
+              color: white;
+            }
+
+            &.priority-high {
+              background-color: #ff5722;
+              color: white;
+            }
+
+            &.priority-critical {
+              background-color: #f44336;
+              color: white;
+            }
+          }
+        }
+
+        mat-card-content {
+          p {
+            margin: 0 0 12px 0;
+            color: #555;
+            font-size: 14px;
+            line-height: 1.5;
+
+            &.card-description {
+              max-height: 60px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              display: -webkit-box;
+              -webkit-line-clamp: 3;
+              -webkit-box-orient: vertical;
+            }
+          }
+
+          .board-reference,
+          .list-reference,
+          .due-date {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            color: #777;
+            margin-right: 16px;
+
+            .small-icon {
+              font-size: 16px;
+              width: 16px;
+              height: 16px;
+            }
+          }
+
+          .card-metadata {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .search-dialog {
+    min-width: 100%;
+    max-width: 100%;
+
+    mat-dialog-content {
+      padding: 12px 16px;
+    }
+
+    .advanced-filters {
+      .filters-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+}

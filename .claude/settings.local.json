@@ -31,7 +31,14 @@
       "Bash(dotnet ef migrations:*)",
       "Bash(dotnet ef database:*)",
       "Bash(dotnet run:*)",
-      "Bash(kill:*)"
+      "Bash(kill:*)",
+      "Bash(dotnet tool:*)",
+      "Bash(dotnet build:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(timeout 3 echo:*)",
+      "Bash(npm start)",
+      "Bash(timeout 5 echo:*)"
     ],
     "deny": [],
     "ask": [],

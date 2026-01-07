@@ -1,0 +1,76 @@
+<div class="activity-timeline">
+  <h2 class="timeline-header">Activity Timeline</h2>
+
+  <div *ngIf="loading && activities.length === 0" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading activities...</p>
+  </div>
+
+  <div *ngIf="error" class="error-container">
+    <mat-icon color="warn">error</mat-icon>
+    <p>{{ error }}</p>
+  </div>
+
+  <div *ngIf="!loading && activities.length === 0 && !error" class="empty-container">
+    <mat-icon>history</mat-icon>
+    <p>No activities yet</p>
+  </div>
+
+  <div class="timeline-container" *ngIf="activities.length > 0">
+    <div class="timeline-item" *ngFor="let activity of activities">
+      <div class="timeline-marker" [class]="getActivityColor(activity.activityType)">
+        <mat-icon>{{ getActivityIcon(activity.activityType) }}</mat-icon>
+      </div>
+
+      <mat-card class="activity-card">
+        <mat-card-header>
+          <div class="activity-header">
+            <div class="activity-user">
+              <strong *ngIf="activity.user">{{ activity.user.username }}</strong>
+              <strong *ngIf="!activity.user">System</strong>
+            </div>
+            <mat-chip class="activity-type-chip" [color]="getActivityColor(activity.activityType)">
+              {{ getActivityTypeName(activity.activityType) }}
+            </mat-chip>
+          </div>
+        </mat-card-header>
+
+        <mat-card-content>
+          <p class="activity-description">{{ activity.description }}</p>
+
+          <div class="activity-metadata">
+            <span class="activity-time">
+              <mat-icon class="small-icon">access_time</mat-icon>
+              {{ getRelativeTime(activity.createdAt) }}
+            </span>
+
+            <span *ngIf="activity.board" class="activity-board">
+              <mat-icon class="small-icon">dashboard</mat-icon>
+              {{ activity.board.title }}
+            </span>
+
+            <span *ngIf="activity.list" class="activity-list">
+              <mat-icon class="small-icon">view_week</mat-icon>
+              {{ activity.list.title }}
+            </span>
+
+            <span *ngIf="activity.card" class="activity-card-ref">
+              <mat-icon class="small-icon">note</mat-icon>
+              {{ activity.card.title }}
+            </span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <div class="load-more-container" *ngIf="hasMore && !loading">
+    <button mat-stroked-button color="primary" (click)="loadMore()">
+      Load More
+    </button>
+  </div>
+
+  <div *ngIf="loading && activities.length > 0" class="loading-more">
+    <mat-spinner diameter="30"></mat-spinner>
+  </div>
+</div>

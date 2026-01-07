@@ -1,0 +1,216 @@
+<div class="search-dialog">
+  <div class="search-header">
+    <h2 mat-dialog-title>Search</h2>
+    <button mat-icon-button mat-dialog-close>
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    <div class="search-input-container">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+          matInput
+          [(ngModel)]="searchQuery"
+          (input)="onSearchInput()"
+          placeholder="Search boards, lists, cards..."
+          autocomplete="off"
+        />
+        <button
+          mat-icon-button
+          matSuffix
+          *ngIf="searchQuery"
+          (click)="clearSearch()"
+        >
+          <mat-icon>clear</mat-icon>
+        </button>
+      </mat-form-field>
+
+      <mat-chip-listbox class="search-type-chips">
+        <mat-chip-option
+          [selected]="searchType === 'all'"
+          (click)="searchType = 'all'; performSearch()"
+        >
+          All
+        </mat-chip-option>
+        <mat-chip-option
+          [selected]="searchType === 'boards'"
+          (click)="searchType = 'boards'; performSearch()"
+        >
+          Boards
+        </mat-chip-option>
+        <mat-chip-option
+          [selected]="searchType === 'lists'"
+          (click)="searchType = 'lists'; performSearch()"
+        >
+          Lists
+        </mat-chip-option>
+        <mat-chip-option
+          [selected]="searchType === 'cards'"
+          (click)="searchType = 'cards'; performSearch()"
+        >
+          Cards
+        </mat-chip-option>
+      </mat-chip-listbox>
+
+      <button
+        mat-stroked-button
+        color="primary"
+        *ngIf="searchType === 'cards'"
+        (click)="toggleAdvancedFilters()"
+        class="advanced-filters-toggle"
+      >
+        <mat-icon>{{ showAdvancedFilters ? 'expand_less' : 'tune' }}</mat-icon>
+        {{ showAdvancedFilters ? 'Hide Filters' : 'Advanced Filters' }}
+      </button>
+    </div>
+
+    <!-- Advanced Filters for Cards -->
+    <div class="advanced-filters" *ngIf="showAdvancedFilters && searchType === 'cards'">
+      <div class="filters-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Priority</mat-label>
+          <mat-select [(ngModel)]="cardFilters.priority">
+            <mat-option [value]="undefined">Any</mat-option>
+            <mat-option *ngFor="let priority of priorities" [value]="priority.value">
+              {{ priority.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Due Date From</mat-label>
+          <input
+            matInput
+            [matDatepicker]="pickerStart"
+            [(ngModel)]="cardFilters.dueDateStart"
+          />
+          <mat-datepicker-toggle matSuffix [for]="pickerStart"></mat-datepicker-toggle>
+          <mat-datepicker #pickerStart></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Due Date To</mat-label>
+          <input
+            matInput
+            [matDatepicker]="pickerEnd"
+            [(ngModel)]="cardFilters.dueDateEnd"
+          />
+          <mat-datepicker-toggle matSuffix [for]="pickerEnd"></mat-datepicker-toggle>
+          <mat-datepicker #pickerEnd></mat-datepicker>
+        </mat-form-field>
+
+        <mat-checkbox [(ngModel)]="cardFilters.overdue">
+          Overdue Only
+        </mat-checkbox>
+      </div>
+
+      <div class="filter-actions">
+        <button mat-button (click)="clearFilters()">Clear Filters</button>
+        <button mat-raised-button color="primary" (click)="applyFilters()">
+          Apply Filters
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-container" *ngIf="loading">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Searching...</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-container" *ngIf="error">
+      <mat-icon color="warn">error</mat-icon>
+      <p>{{ error }}</p>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-container" *ngIf="!loading && !error && totalResults === 0 && searchQuery.length >= 2">
+      <mat-icon>search_off</mat-icon>
+      <p>No results found for "{{ searchQuery }}"</p>
+    </div>
+
+    <!-- Search Results -->
+    <div class="search-results" *ngIf="!loading && !error && totalResults > 0">
+      <p class="results-count">
+        Found {{ totalResults }} result{{ totalResults !== 1 ? 's' : '' }}
+      </p>
+
+      <!-- Boards -->
+      <div class="results-section" *ngIf="boards.length > 0">
+        <h3>
+          <mat-icon>dashboard</mat-icon>
+          Boards ({{ boards.length }})
+        </h3>
+        <mat-card *ngFor="let board of boards" class="result-card" (click)="navigateToBoard(board.id)">
+          <mat-card-header>
+            <mat-card-title>{{ board.title }}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content *ngIf="board.description">
+            <p>{{ board.description }}</p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Lists -->
+      <div class="results-section" *ngIf="lists.length > 0">
+        <h3>
+          <mat-icon>view_week</mat-icon>
+          Lists ({{ lists.length }})
+        </h3>
+        <mat-card *ngFor="let list of lists" class="result-card">
+          <mat-card-header>
+            <mat-card-title>{{ list.title }}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content *ngIf="list.board">
+            <p class="board-reference">
+              <mat-icon class="small-icon">dashboard</mat-icon>
+              {{ list.board.title }}
+            </p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Cards -->
+      <div class="results-section" *ngIf="cards.length > 0">
+        <h3>
+          <mat-icon>note</mat-icon>
+          Cards ({{ cards.length }})
+        </h3>
+        <mat-card *ngFor="let card of cards" class="result-card" (click)="navigateToCard(card)">
+          <mat-card-header>
+            <mat-card-title>
+              {{ card.title }}
+              <mat-chip
+                *ngIf="card.priority && card.priority !== 0"
+                [class]="getPriorityClass(card.priority)"
+                class="priority-chip"
+              >
+                {{ getPriorityLabel(card.priority) }}
+              </mat-chip>
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <p *ngIf="card.description" class="card-description">{{ card.description }}</p>
+            <div class="card-metadata">
+              <span *ngIf="card.list && card.list.board" class="board-reference">
+                <mat-icon class="small-icon">dashboard</mat-icon>
+                {{ card.list.board.title }}
+              </span>
+              <span *ngIf="card.list" class="list-reference">
+                <mat-icon class="small-icon">view_week</mat-icon>
+                {{ card.list.title }}
+              </span>
+              <span *ngIf="card.dueDate" class="due-date">
+                <mat-icon class="small-icon">schedule</mat-icon>
+                {{ formatDate(card.dueDate) }}
+              </span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </mat-dialog-content>
+</div>
