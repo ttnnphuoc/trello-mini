@@ -13,13 +13,29 @@
           <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">{{ board.title }}</h1>
           <p *ngIf="board.description" class="text-gray-600 mt-1">{{ board.description }}</p>
         </div>
-        <button 
-          mat-raised-button 
-          [routerLink]="['/']"
-          class="flex items-center gap-2 w-full sm:w-auto">
-          <mat-icon>arrow_back</mat-icon>
-          Back to Boards
-        </button>
+        <div class="flex items-center gap-4">
+          <!-- Online Users -->
+          <div class="flex items-center gap-2" *ngIf="onlineUsers.length > 0">
+            <span class="text-sm text-gray-600">Online:</span>
+            <div class="flex items-center gap-1">
+              <div 
+                *ngFor="let user of onlineUsers" 
+                class="relative flex items-center justify-center w-8 h-8 bg-blue-500 text-white text-xs font-medium rounded-full border-2 border-white shadow-sm"
+                [matTooltip]="user.username">
+                {{ user.username.charAt(0).toUpperCase() }}
+                <div class="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border border-white"></div>
+              </div>
+            </div>
+            <span class="text-xs text-gray-500">({{ onlineUsers.length }})</span>
+          </div>
+          <button 
+            mat-raised-button 
+            [routerLink]="['/']"
+            class="flex items-center gap-2 w-full sm:w-auto">
+            <mat-icon>arrow_back</mat-icon>
+            Back to Boards
+          </button>
+        </div>
       </div>
     </div>
 

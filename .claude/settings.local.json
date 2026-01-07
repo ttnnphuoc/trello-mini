@@ -29,7 +29,9 @@
       "Bash(pkill:*)",
       "Bash(ng build)",
       "Bash(dotnet ef migrations:*)",
-      "Bash(dotnet ef database:*)"
+      "Bash(dotnet ef database:*)",
+      "Bash(dotnet run:*)",
+      "Bash(kill:*)"
     ],
     "deny": [],
     "ask": [],

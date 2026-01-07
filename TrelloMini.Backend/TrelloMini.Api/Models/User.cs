@@ -32,5 +32,9 @@ namespace TrelloMini.Api.Models
         
         // Navigation properties
         public ICollection<Board> Boards { get; set; } = new List<Board>();
+        public ICollection<BoardMember> BoardMemberships { get; set; } = new List<BoardMember>();
+        public ICollection<BoardInvitation> SentInvitations { get; set; } = new List<BoardInvitation>();
+        public ICollection<BoardInvitation> ReceivedInvitations { get; set; } = new List<BoardInvitation>();
+        public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
     }
 }

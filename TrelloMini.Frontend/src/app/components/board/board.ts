@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -8,12 +8,15 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatChipsModule } from '@angular/material/chips';
 import { FormsModule } from '@angular/forms';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
+import { Subscription } from 'rxjs';
 import { BoardService } from '../../services/board';
 import { ListService } from '../../services/list';
 import { CardService } from '../../services/card';
+import { SignalRService, OnlineUser, CardMoveEvent } from '../../services/signalr';
 import { Board } from '../../models/board';
 import { List } from '../../models/list';
 import { Card, CardPriority } from '../../models/card';
@@ -33,30 +36,121 @@ import { CardDetailsComponent } from '../card-details/card-details';
     MatFormFieldModule,
     MatTooltipModule,
     MatDialogModule,
+    MatChipsModule,
     DragDropModule
   ],
   templateUrl: './board.html',
   styleUrl: './board.scss',
 })
-export class BoardComponent implements OnInit {
+export class BoardComponent implements OnInit, OnDestroy {
   board: Board | null = null;
   loading = false;
   newListTitle = '';
   newCardTitles: { [listId: number]: string } = {};
+  onlineUsers: OnlineUser[] = [];
+  
+  private subscriptions: Subscription[] = [];
 
   constructor(
     private route: ActivatedRoute,
     private boardService: BoardService,
     private listService: ListService,
     private cardService: CardService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private signalRService: SignalRService
   ) {}
 
   ngOnInit(): void {
     const boardId = Number(this.route.snapshot.paramMap.get('id'));
     if (boardId) {
       this.loadBoard(boardId);
+      this.setupSignalR(boardId.toString());
     }
+  }
+
+  ngOnDestroy(): void {
+    // Clean up subscriptions
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+    
+    // Leave the board group
+    if (this.board) {
+      this.signalRService.leaveBoard(this.board.id.toString());
+    }
+  }
+
+  private setupSignalR(boardId: string): void {
+    // Join the board group
+    this.signalRService.joinBoard(boardId);
+
+    // Subscribe to online users
+    const onlineUsersSubscription = this.signalRService.onlineUsers$.subscribe(
+      users => this.onlineUsers = users
+    );
+
+    // Subscribe to card movements from other users
+    const cardMovedSubscription = this.signalRService.cardMoved$.subscribe(
+      (moveEvent: CardMoveEvent | null) => {
+        if (moveEvent) {
+          this.handleRemoteCardMove(moveEvent);
+        }
+      }
+    );
+
+    // Subscribe to card updates from other users
+    const cardUpdatedSubscription = this.signalRService.cardUpdated$.subscribe(
+      (cardData: any) => {
+        if (cardData) {
+          this.handleRemoteCardUpdate(cardData);
+        }
+      }
+    );
+
+    // Subscribe to card creation from other users
+    const cardCreatedSubscription = this.signalRService.cardCreated$.subscribe(
+      (cardData: any) => {
+        if (cardData) {
+          this.handleRemoteCardCreate(cardData);
+        }
+      }
+    );
+
+    // Subscribe to card deletion from other users
+    const cardDeletedSubscription = this.signalRService.cardDeleted$.subscribe(
+      (cardData: any) => {
+        if (cardData) {
+          this.handleRemoteCardDelete(cardData);
+        }
+      }
+    );
+
+    // Subscribe to list creation from other users
+    const listCreatedSubscription = this.signalRService.listCreated$.subscribe(
+      (listData: any) => {
+        if (listData) {
+          this.handleRemoteListCreate(listData);
+        }
+      }
+    );
+
+    // Subscribe to list deletion from other users
+    const listDeletedSubscription = this.signalRService.listDeleted$.subscribe(
+      (listData: any) => {
+        if (listData) {
+          this.handleRemoteListDelete(listData);
+        }
+      }
+    );
+
+    // Add all subscriptions to cleanup array
+    this.subscriptions.push(
+      onlineUsersSubscription,
+      cardMovedSubscription,
+      cardUpdatedSubscription,
+      cardCreatedSubscription,
+      cardDeletedSubscription,
+      listCreatedSubscription,
+      listDeletedSubscription
+    );
   }
 
   loadBoard(id: number): void {
@@ -86,6 +180,9 @@ export class BoardComponent implements OnInit {
       next: (list) => {
         this.board!.lists.push(list);
         this.newListTitle = '';
+        
+        // Notify other users via SignalR
+        this.signalRService.notifyListCreated(this.board!.id.toString(), list);
       },
       error: (error) => {
         console.error('Error creating list:', error);
@@ -110,6 +207,11 @@ export class BoardComponent implements OnInit {
       next: (card) => {
         list.cards.push(card);
         this.newCardTitles[listId] = '';
+        
+        // Notify other users via SignalR
+        if (this.board) {
+          this.signalRService.notifyCardCreated(this.board.id.toString(), card);
+        }
       },
       error: (error) => {
         console.error('Error creating card:', error);
@@ -122,7 +224,13 @@ export class BoardComponent implements OnInit {
 
     this.listService.deleteList(listId).subscribe({
       next: () => {
+        const deletedList = this.board!.lists.find(list => list.id === listId);
         this.board!.lists = this.board!.lists.filter(list => list.id !== listId);
+        
+        // Notify other users via SignalR
+        if (this.board && deletedList) {
+          this.signalRService.notifyListDeleted(this.board.id.toString(), deletedList);
+        }
       },
       error: (error) => {
         console.error('Error deleting list:', error);
@@ -137,7 +245,13 @@ export class BoardComponent implements OnInit {
       next: () => {
         const list = this.board?.lists.find(l => l.id === listId);
         if (list) {
+          const deletedCard = list.cards.find(card => card.id === cardId);
           list.cards = list.cards.filter(card => card.id !== cardId);
+          
+          // Notify other users via SignalR
+          if (this.board && deletedCard) {
+            this.signalRService.notifyCardDeleted(this.board.id.toString(), deletedCard);
+          }
         }
       },
       error: (error) => {
@@ -205,6 +319,19 @@ export class BoardComponent implements OnInit {
             list.cards[cardIndex].position = newPosition;
           }
         });
+
+        // Notify other users via SignalR
+        if (this.board) {
+          const sourceList = this.board.lists.find(l => 
+            l.cards.some(c => c.id === cardId)
+          );
+          this.signalRService.notifyCardMoved(this.board.id.toString(), {
+            cardId: cardId,
+            sourceListId: sourceList?.id || targetListId,
+            targetListId: targetListId,
+            newPosition: newPosition
+          });
+        }
       },
       error: (error) => {
         console.error('Error moving card:', error);
@@ -232,12 +359,22 @@ export class BoardComponent implements OnInit {
         this.board?.lists.forEach(list => {
           list.cards = list.cards.filter(c => c.id !== card.id);
         });
+        
+        // Notify other users via SignalR
+        if (this.board) {
+          this.signalRService.notifyCardDeleted(this.board.id.toString(), card);
+        }
       } else if (result) {
         // Card was updated, update in UI
         this.board?.lists.forEach(list => {
           const cardIndex = list.cards.findIndex(c => c.id === card.id);
           if (cardIndex >= 0) {
             list.cards[cardIndex] = { ...list.cards[cardIndex], ...result };
+            
+            // Notify other users via SignalR
+            if (this.board) {
+              this.signalRService.notifyCardUpdated(this.board.id.toString(), list.cards[cardIndex]);
+            }
           }
         });
       }
@@ -275,6 +412,85 @@ export class BoardComponent implements OnInit {
       return 'text-orange-600'; // Due today or tomorrow
     } else {
       return 'text-gray-600'; // Future due date
+    }
+  }
+
+  // Remote event handlers
+  private handleRemoteCardMove(moveEvent: CardMoveEvent): void {
+    if (!this.board) return;
+    
+    // Find the card and move it locally without API call
+    let cardToMove: Card | null = null;
+    let sourceList: List | null = null;
+    
+    // Find the card in the source list
+    for (const list of this.board.lists) {
+      const cardIndex = list.cards.findIndex(card => card.id === moveEvent.cardId);
+      if (cardIndex >= 0) {
+        cardToMove = list.cards[cardIndex];
+        sourceList = list;
+        list.cards.splice(cardIndex, 1);
+        break;
+      }
+    }
+    
+    if (cardToMove) {
+      // Find the target list and add the card
+      const targetList = this.board.lists.find(list => list.id === moveEvent.targetListId);
+      if (targetList) {
+        cardToMove.listId = moveEvent.targetListId;
+        cardToMove.position = moveEvent.newPosition;
+        targetList.cards.splice(moveEvent.newPosition, 0, cardToMove);
+      }
+    }
+  }
+
+  private handleRemoteCardUpdate(cardData: any): void {
+    if (!this.board) return;
+    
+    // Find and update the card
+    for (const list of this.board.lists) {
+      const cardIndex = list.cards.findIndex(card => card.id === cardData.id);
+      if (cardIndex >= 0) {
+        list.cards[cardIndex] = { ...list.cards[cardIndex], ...cardData };
+        break;
+      }
+    }
+  }
+
+  private handleRemoteCardCreate(cardData: any): void {
+    if (!this.board) return;
+    
+    const list = this.board.lists.find(l => l.id === cardData.listId);
+    if (list) {
+      list.cards.push(cardData);
+    }
+  }
+
+  private handleRemoteCardDelete(cardData: any): void {
+    if (!this.board) return;
+    
+    for (const list of this.board.lists) {
+      const cardIndex = list.cards.findIndex(card => card.id === cardData.id);
+      if (cardIndex >= 0) {
+        list.cards.splice(cardIndex, 1);
+        break;
+      }
+    }
+  }
+
+  private handleRemoteListCreate(listData: any): void {
+    if (!this.board) return;
+    
+    this.board.lists.push(listData);
+  }
+
+  private handleRemoteListDelete(listData: any): void {
+    if (!this.board) return;
+    
+    const listIndex = this.board.lists.findIndex(list => list.id === listData.id);
+    if (listIndex >= 0) {
+      this.board.lists.splice(listIndex, 1);
     }
   }
 }

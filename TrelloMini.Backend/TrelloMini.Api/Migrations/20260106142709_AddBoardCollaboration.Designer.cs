@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TrelloMini.Api.Data;
@@ -11,9 +12,11 @@ using TrelloMini.Api.Data;
 namespace TrelloMini.Api.Migrations
 {
     [DbContext(typeof(TrelloDbContext))]
-    partial class TrelloDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260106142709_AddBoardCollaboration")]
+    partial class AddBoardCollaboration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
